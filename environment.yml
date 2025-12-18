@@ -1,4 +1,4 @@
-name: DiT
+name: idit
 channels:
   - pytorch
   - nvidia

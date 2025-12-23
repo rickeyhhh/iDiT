@@ -24,6 +24,8 @@ import numpy as np
 import math
 import argparse
 
+from phase_quantization import replace_modules_for_qat
+
 
 def create_npz_from_sample_folder(sample_dir, num=50_000):
     """
@@ -74,6 +76,11 @@ def main(args):
     ckpt_path = args.ckpt or f"DiT-XL-2-{args.image_size}x{args.image_size}.pt"
     state_dict = find_model(ckpt_path)
     model.load_state_dict(state_dict)
+
+    ### replace linear
+    if args.quant_method:
+        replace_modules_for_qat(model, args.quant_method)
+
     model.eval()  # important!
     diffusion = create_diffusion(str(args.num_sampling_steps))
     vae = AutoencoderKL.from_pretrained(f"stabilityai/sd-vae-ft-{args.vae}").to(device)
@@ -149,7 +156,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, choices=list(DiT_models.keys()), default="DiT-XL/2")
-    parser.add_argument("--vae",  type=str, choices=["ema", "mse"], default="ema")
+    parser.add_argument("--vae",  type=str, choices=["ema", "mse"], default="mse")
     parser.add_argument("--sample-dir", type=str, default="samples")
     parser.add_argument("--per-proc-batch-size", type=int, default=32)
     parser.add_argument("--num-fid-samples", type=int, default=50_000)
@@ -162,5 +169,9 @@ if __name__ == "__main__":
                         help="By default, use TF32 matmuls. This massively accelerates sampling on Ampere GPUs.")
     parser.add_argument("--ckpt", type=str, default=None,
                         help="Optional path to a DiT checkpoint (default: auto-download a pre-trained DiT-XL/2 model).")
+    ### replace linear
+    parser.add_argument("--quant-method", type=str, default='complex_phase_v1',
+                        help="Quantization method for linear layers.")
+    
     args = parser.parse_args()
     main(args)

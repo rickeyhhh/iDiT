@@ -169,7 +169,7 @@ if __name__ == "__main__":
                         help="By default, use TF32 matmuls. This massively accelerates sampling on Ampere GPUs.")
     parser.add_argument("--ckpt", type=str, default=None,
                         help="Optional path to a DiT checkpoint (default: auto-download a pre-trained DiT-XL/2 model).")
-    ### replace linear
+    ### choose quant method
     parser.add_argument("--quant-method", type=str, default='complex_phase_v1',
                         help="Quantization method for linear layers.")
     
